@@ -1,0 +1,132 @@
+name: shop_mytun
+services:
+  mysql:
+    image: mariadb:lts
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "prestashop"
+      MYSQL_USER: "prestashop"
+      MYSQL_PASSWORD: "prestashop"
+      MYSQL_DATABASE: "prestashop" 
+      MYSQL_HOST: "mysql"
+    ports:
+      - "4306:3306"
+    profiles: ["monostore", "multistore", "flashlight"]
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: "mysql"
+      MYSQL_ROOT_PASSWORD: "prestashop"
+    ports:
+      - "9090:80"
+    profiles: ["monostore", "multistore", "flashlight"]
+
+  shop1:
+    image: prestashop/prestashop:8.2-apache
+    container_name: shop1
+    restart: unless-stopped
+    user: root
+    depends_on:
+      - mysql
+    environment:
+      PS_DOMAIN: ${PS_DOMAIN}
+      ADMIN_MAIL: "admin@prestashop.com"
+      ADMIN_PASSWD: "prestashop"
+      DB_SERVER: mysql
+      DB_USER: prestashop
+      DB_NAME: prestashop
+      DB_PASSWD: prestashop
+      DB_PORT: 3306
+      PHYSICAL_URI: "shop1"
+      PS_TRUSTED_PROXIES: 0.0.0.0/0
+      PS_ERASE_DB: 1
+      PS_INSTALL_DB: 1
+      PS_INSTALL_AUTO: 1
+      PS_FOLDER_ADMIN: admin-dev
+      PS_DEV_MODE: 0
+      PS_ENABLE_SSL: 1
+    ports:
+      - "9000:80"
+    volumes:
+      - ./scripts/pre-install-scripts:/tmp/pre-install-scripts
+      - ./scripts/init-scripts:/tmp/init-scripts
+    profiles: ["monostore", "multistore"]
+
+
+  shop2:
+    image: prestashop/prestashop:8.2-apache
+    container_name: shop2
+    restart: unless-stopped
+    user: root
+    depends_on:
+      - mysql
+    environment:
+      PS_DOMAIN: ${PS_DOMAIN}
+      ADMIN_MAIL: "admin@prestashop.com"
+      ADMIN_PASSWD: "prestashop"
+      DB_SERVER: mysql
+      DB_USER: prestashop
+      DB_NAME: prestashop2
+      DB_PASSWD: prestashop
+      DB_PORT: 3306
+      PHYSICAL_URI: "shop2"
+      PS_TRUSTED_PROXIES: 0.0.0.0/0
+      PS_ERASE_DB: 1
+      PS_INSTALL_DB: 1
+      PS_INSTALL_AUTO: 1
+      PS_FOLDER_ADMIN: admin-dev
+      PS_DEV_MODE: 1
+      PS_ENABLE_SSL: 1
+    ports:
+      - "9001:80"
+    volumes:
+      - ./scripts/pre-install-scripts:/tmp/pre-install-scripts
+      - ./scripts/init-scripts:/tmp/init-scripts
+    profiles: ["multistore"]
+
+  flashlight:
+    restart: unless-stopped
+    image: prestashop/prestashop-flashlight:nightly-nginx
+    environment:
+      ADMIN_MAIL: "admin@prestashop.com"
+      ADMIN_PASSWD: "prestashop"
+      PS_DOMAIN: ${PS_DOMAIN}
+      SSL_REDIRECT: true
+    ports:
+      - "9002:80"
+    profiles: ["flashlight"]
+
+  mytun:
+    restart: always
+    image: ${IMAGE_PREFIX:-}cloudflare/cloudflared:latest
+    command: tunnel --config /config.yml run
+    volumes:
+    - ./myTun/config/mytun-config.yml:/config.yml:ro
+    - ./myTun/config/mytun-credentials.json:/credentials.json:ro
+    profiles: ["monostore", "multistore", "flashlight"]
+
+
+  nginx_proxy:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    restart: unless-stopped
+    depends_on:
+      - shop1
+      - shop2
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:rw
+    profiles: ["multistore"]
+
+
+
+      
+
+

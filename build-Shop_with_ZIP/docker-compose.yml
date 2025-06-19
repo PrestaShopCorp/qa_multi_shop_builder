@@ -1,0 +1,67 @@
+name: shop_zip
+services:
+  prestashop:
+    build: .
+    volumes:
+      - ./prestashop.zip:/var/www/html/prestashop.zip
+      - ./info.php:/var/www/html/info.php
+      - ./php.ini:/usr/local/etc/php/conf.d/php.ini
+    ports:
+      - "80:80"
+    command: >
+      bash -c "
+        unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
+        chown -R www-data:www-data /var/www/html && \
+        apache2ctl -D FOREGROUND
+      "
+    networks:
+      - prestashop_network
+
+  mysql:
+    restart: unless-stopped
+    image: mariadb:lts
+    environment:
+      TZ: Europe/Paris
+      MYSQL_HOST: mysql
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: prestashop
+      MYSQL_ROOT_PASSWORD: prestashop
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: prestashop
+    ports:
+      - "3307:3306"
+    networks:
+      - prestashop_network
+      
+  phpmyadmin:
+      image: phpmyadmin:latest
+      ports:
+        - 3007:80
+      environment:
+        - PMA_HOST=mysql
+        - PMA_PORT=3306
+        - PMA_USER=prestashop
+        - PMA_PASSWORD=prestashop
+        - MYSQL_ROOT_PASSWORD=prestashop
+      networks:
+        - prestashop_network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    command: http --hostname=${PS_DOMAIN} prestashop:80
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - prestashop
+    restart: always
+    networks:
+      - prestashop_network
+
+networks:
+  prestashop_network:
+    driver: bridge
+
+  
