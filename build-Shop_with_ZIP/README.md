@@ -44,7 +44,7 @@ Gilsser le prestashop.zip à la racine du dossier build-Shop_with_ZIP
 
 ---
 
-Si vous souhaitez apporter des modifications à l'installation de la shop, vous devez modifier la commande PHP dans le script install_cli.sh
+Si vous souhaitez apporter des modifications à l’installation de la boutique, vous devez modifier la commande PHP dans le script install_cli.sh
 
 ---
 
@@ -55,23 +55,24 @@ php -d memory_limit=1024M install/index_cli.php \
   --language=fr \
   --timezone=Europe/Paris \
   --domain=${PS_DOMAIN} \
-  --db_server=mysql \ =====> nom du hostname de la base de donnée
-  --db_user=prestashop \ =====> nom du user de la base de donnée
-  --db_password=prestashop \ =====> mot de passe du user de la base de donnée
-  --db_name=prestashop \ =====> nom de la base de donnée
+  --db_server=mysql \            # Nom du host de la base de données
+  --db_user=prestashop \         # Nom de l’utilisateur de la base de données
+  --db_password=prestashop \     # Mot de passe de l’utilisateur de la base de données
+  --db_name=prestashop \         # Nom de la base de données
   --prefix=ps_ \
   --db_clear=1 \
   --engine=InnoDB \
-  --name="MaBoutique" \ =====> nom de la shop
-  --country=fr \ =====> country de la shop
-  --firstname=John \ =====> prénom de l'admin user 
-  --lastname=Doe \ =====> nom de l'admin user 
-  --password=prestashop \ =====> le mot de passe de la shop
-  --email=admin@prestashop.com \ =====> on modifie e-mail  de la shop
+  --name="MaBoutique" \          # Nom de la boutique
+  --country=fr \                 # Code pays de la boutique
+  --firstname=John \             # Prénom de l’utilisateur administrateur
+  --lastname=Doe \               # Nom de l’utilisateur administrateur
+  --password=prestashop \        # Mot de passe de l’administrateur
+  --email=admin@prestashop.com \ # Adresse e-mail de l’administrateur
   --ssl=1 \
   --rewrite=1 \
   --fixtures=0 \
   --modules=""
+
 ```
 ---
 
