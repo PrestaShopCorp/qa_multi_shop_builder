@@ -44,6 +44,38 @@ Gilsser le prestashop.zip à la racine du dossier build-Shop_with_ZIP
 
 ---
 
+Si vous souhaitez apporter des modifications à l'installation de la shop, vous devez modifier la commande PHP dans le script install_cli.sh
+
+---
+
+🌐 Lien de la documentation d'installation en CLI : https://devdocs.prestashop-project.org/9/basics/installation/advanced/install-from-cli/
+
+```
+php -d memory_limit=1024M install/index_cli.php \
+  --language=fr \
+  --timezone=Europe/Paris \
+  --domain=${PS_DOMAIN} \
+  --db_server=mysql \ =====> nom du hostname de la base de donnée
+  --db_user=prestashop \ =====> nom du user de la base de donnée
+  --db_password=prestashop \ =====> mot de passe du user de la base de donnée
+  --db_name=prestashop \ =====> nom de la base de donnée
+  --prefix=ps_ \
+  --db_clear=1 \
+  --engine=InnoDB \
+  --name="MaBoutique" \ =====> nom de la shop
+  --country=fr \ =====> country de la shop
+  --firstname=John \ =====> prénom de l'admin user 
+  --lastname=Doe \ =====> nom de l'admin user 
+  --password=prestashop \ =====> le mot de passe de la shop
+  --email=admin@prestashop.com \ =====> on modifie e-mail  de la shop
+  --ssl=1 \
+  --rewrite=1 \
+  --fixtures=0 \
+  --modules=""
+```
+---
+
+
 ## Lancer le build de la shop
 
 Dans le terminal lancer la Commande = 
