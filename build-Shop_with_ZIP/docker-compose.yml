@@ -2,16 +2,20 @@ name: shop_zip
 services:
   prestashop:
     build: .
+    environment:
+      - PS_DOMAIN=${PS_DOMAIN}
     volumes:
       - ./prestashop.zip:/var/www/html/prestashop.zip
       - ./info.php:/var/www/html/info.php
       - ./php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./install_cli.sh:/install_cli.sh
     ports:
       - "80:80"
     command: >
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
         chown -R www-data:www-data /var/www/html && \
+        bash /install_cli.sh && \
         apache2ctl -D FOREGROUND
       "
     networks:

@@ -54,43 +54,7 @@ Cette commande :
    - Lance lance le build de la shop contenue dans le prestashop.zip
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/
-
----
-
-Lorsque vous accedez à la shop lancer l'installation habituelle
-
----
-
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image2.png)
-
----
-
-Au step Store information, cocher oui pour le champ “Enable SSL”
-
----
-
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image3.png)
-
----
-
-Au step System configuration, pour la BDD rentrer “mysql” et il faut s'assurer que la Tables prefix est ps_
-
----
-
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image4.png)
-
----
-
-Un fois l'installation de la shop terminé, dans docker desktop allez dans le container de la shop puis dans "exec"
-
-Puis supprimer le ficher d'install avec la commande suivante :
-
-```rm -rf install```
-
----
-
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image5.png)
+URL d’accès à la boutique : https://ton_domaine_ngrok/admin-dev
 
 ---
 

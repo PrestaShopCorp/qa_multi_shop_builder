@@ -28,7 +28,7 @@ services:
     profiles: ["monostore", "multistore", "flashlight"]
 
   shop1:
-    image: prestashop/prestashop:8.2-apache
+    image: prestashop/prestashop:9.0.0-1.0-rc.1-classic-apache
     container_name: shop1
     restart: unless-stopped
     user: root
@@ -92,7 +92,7 @@ services:
 
   flashlight:
     restart: unless-stopped
-    image: prestashop/prestashop-flashlight:nightly-nginx
+    image: prestashop/prestashop-flashlight:1.6.1.24-alpine-nginx
     environment:
       ADMIN_MAIL: "admin@prestashop.com"
       ADMIN_PASSWD: "prestashop"
