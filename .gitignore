@@ -1,3 +1,4 @@
 *.env
 /build-Shop_with_MyTun/myTun/config/mytun-config.yml
 /build-Shop_with_MyTun/myTun/config/mytun-credentials.json
+/build-Shop_with_ZIP/prestashop.zip
