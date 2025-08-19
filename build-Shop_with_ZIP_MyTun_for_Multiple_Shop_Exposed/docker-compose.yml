@@ -10,7 +10,7 @@ services:
       - ./php.ini:/usr/local/etc/php/conf.d/php.ini
       - ./install_cli.sh:/install_cli.sh
     ports:
-      - "80:80"
+      - "${PS_PORT:-80}:80"
     command: >
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
@@ -33,14 +33,14 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: prestashop
     ports:
-      - "3307:3306"
+      - "${MYSQL_PORT:-3307}:3306" 
     networks:
       - prestashop_network
       
   phpmyadmin:
       image: phpmyadmin:latest
       ports:
-        - 3007:80
+      - "${PMA_PORT:-3007}:80"
       environment:
         - PMA_HOST=mysql
         - PMA_PORT=3306
