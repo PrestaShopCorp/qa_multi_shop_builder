@@ -104,7 +104,7 @@ services:
 
   mytun:
     restart: always
-    image: ${IMAGE_PREFIX:-}cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:latest
     command: tunnel --config /config.yml run
     volumes:
     - ./myTun/config/mytun-config.yml:/config.yml:ro
