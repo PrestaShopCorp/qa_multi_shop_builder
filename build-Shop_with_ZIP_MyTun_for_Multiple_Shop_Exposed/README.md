@@ -21,8 +21,8 @@ Ce projet permet de créer une boutiques PrestaShop à partir d'un zip, accessib
 
 Crée un fichier `.env` à la racine du dossier build-Shop_with_Ngrok avec ce contenu (exemple dans le .env.dist) :
 ```
-   -  NGROK_AUTHTOKEN="ton_token_ngrok"
-   -  PS_DOMAIN="ton_domaine_ngrok"
+NGROK_AUTHTOKEN="ton_token_ngrok"
+PS_DOMAIN="ton_domaine_ngrok"
 
 ```
 

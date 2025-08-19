@@ -25,11 +25,11 @@ Ce projet permet de lancer une ou deux boutiques PrestaShop accessibles publique
 Crée un fichier `.env` à la racine du dossier build-Shop_with_Mytun avec ce contenu (exemple dans le .env.dist) :
 
 ```
-   - ACCOUNT_TAG="your account tag"
-   - TUNNEL_SECRET="your tunel secret"
-   - TUNNEL_ID="your tunel id"
-   - PS_DOMAIN="prestashop.firstname-name-mytun.prestashop.name"
-   - DOMAIN="firstname-name-mytun.prestashop.name"
+ACCOUNT_TAG="your account tag"
+TUNNEL_SECRET="your tunel secret"
+TUNNEL_ID="your tunel id"
+PS_DOMAIN="prestashop.firstname-name-mytun.prestashop.name"
+DOMAIN="firstname-name-mytun.prestashop.name"
 ```
 ---
 
