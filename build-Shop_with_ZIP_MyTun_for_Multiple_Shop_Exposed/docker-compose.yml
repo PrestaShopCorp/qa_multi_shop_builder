@@ -1,6 +1,6 @@
-name: shop_zip
 services:
   prestashop:
+    # container_name: prestashop-${SHOP_ID:-0}
     build: .
     environment:
       - PS_DOMAIN=${PS_DOMAIN}
@@ -22,6 +22,7 @@ services:
       - prestashop_network
 
   mysql:
+    # container_name: mysql-${SHOP_ID:-0}
     restart: unless-stopped
     image: mariadb:lts
     environment:
@@ -33,14 +34,15 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: prestashop
     ports:
-      - "${MYSQL_PORT:-3307}:3306" 
+      - "${MYSQL_PORT:-3300}:3306" 
     networks:
       - prestashop_network
       
   phpmyadmin:
+      # container_name: phpmyadmin-${SHOP_ID:-0}
       image: phpmyadmin:latest
       ports:
-      - "${PMA_PORT:-3007}:80"
+      - "${PMA_PORT:-3000}:80"
       environment:
         - PMA_HOST=mysql
         - PMA_PORT=3306
@@ -62,6 +64,7 @@ services:
 
 networks:
   prestashop_network:
-    driver: bridge
+    external: true
+    name: prestashop_global
 
   

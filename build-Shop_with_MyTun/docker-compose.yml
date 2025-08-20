@@ -111,7 +111,6 @@ services:
     - ./myTun/config/mytun-credentials.json:/credentials.json:ro
     profiles: ["monostore", "multistore", "flashlight"]
 
-
   nginx_proxy:
     image: nginx:alpine
     container_name: nginx_proxy
