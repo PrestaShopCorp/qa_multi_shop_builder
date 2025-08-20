@@ -2,15 +2,11 @@ tunnel: "c7cd4e87-4774-4175-accc-9af09cdfb0ee"
 credentials-file: /credentials.json
 ingress:
   - hostname: "prestashop0.ervin-klicic-mytun.prestashop.name"
-    service: http://shop0-prestashop:80
+    service: http://prestashop-0:80
     originRequest:
       httpHostHeader: "prestashop0.ervin-klicic-mytun.prestashop.name"
   - hostname: "prestashop1.ervin-klicic-mytun.prestashop.name"
-    service: http://shop1-prestashop:80
+    service: http://prestashop-1:80
     originRequest:
       httpHostHeader: "prestashop1.ervin-klicic-mytun.prestashop.name"
-  - hostname: "prestashop2.ervin-klicic-mytun.prestashop.name"
-    service: http://shop2-prestashop:80
-    originRequest:
-      httpHostHeader: "prestashop2.ervin-klicic-mytun.prestashop.name"
   - service: http_status:404

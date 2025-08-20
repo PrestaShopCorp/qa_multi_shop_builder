@@ -26,7 +26,7 @@ fi
 if ! grep -q "hostname: \"$PS_DOMAIN\"" "$CGF"; then
     sed -i '' '/service: http_status:404/d' "$CGF"
     echo "  - hostname: \"$PS_DOMAIN\"" >> "$CGF"
-    echo "    service: http://shop${SHOP_ID}-prestashop:80" >> "$CGF"
+    echo "    service: http://prestashop-${SHOP_ID}:80" >> "$CGF"
     echo "    originRequest:" >> "$CGF"  
     echo "      httpHostHeader: \"$PS_DOMAIN\"" >> "$CGF"
     echo "  - service: http_status:404" >> "$CGF"

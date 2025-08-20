@@ -13,10 +13,10 @@ shop:
 	PS_PORT=$$((80 + $(SHOP_ID))); \
 	MYSQL_PORT=$$((3300 + $(SHOP_ID))); \
 	PMA_PORT=$$((3000 + $(SHOP_ID))); \
-	PS_PORT=$$PS_PORT MYSQL_PORT=$$MYSQL_PORT PMA_PORT=$$PMA_PORT docker compose -p shop$(SHOP_ID) up --build -d; \
+	PS_DOMAIN=${PS_DOMAIN} SHOP_ID=${SHOP_ID} PS_PORT=$$PS_PORT MYSQL_PORT=$$MYSQL_PORT PMA_PORT=$$PMA_PORT docker compose -p shop$(SHOP_ID) up --build -d; \
 
 	@echo "⏳ Installation de la Shop cours, merci de patienter..."
-	@docker compose logs -f --no-color prestashop | awk '/Shop Installation Done/{exit}'
+	@docker compose -p shop$(SHOP_ID) logs -f --no-color prestashop | awk '/Shop Installation Done/{exit}'
 	@echo "✅ Installation terminée."
 	@echo "🌐 Accès à la boutique : https://${PS_DOMAIN}/admin-dev"
 

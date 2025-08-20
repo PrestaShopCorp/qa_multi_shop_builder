@@ -1,9 +1,11 @@
+name: shop_${SHOP_ID:-0}
 services:
   prestashop:
-    # container_name: prestashop-${SHOP_ID:-0}
+    container_name: prestashop-${SHOP_ID:-0}
     build: .
     environment:
       - PS_DOMAIN=${PS_DOMAIN}
+      - SHOP_ID=${SHOP_ID:-0} 
     volumes:
       - ./prestashop.zip:/var/www/html/prestashop.zip
       - ./info.php:/var/www/html/info.php
@@ -22,29 +24,28 @@ services:
       - prestashop_network
 
   mysql:
-    # container_name: mysql-${SHOP_ID:-0}
+    container_name: mysql-${SHOP_ID:-0}
     restart: unless-stopped
     image: mariadb:lts
     environment:
       TZ: Europe/Paris
-      MYSQL_HOST: mysql
       MYSQL_USER: prestashop
       MYSQL_PASSWORD: prestashop
       MYSQL_ROOT_PASSWORD: prestashop
       MYSQL_PORT: 3306
-      MYSQL_DATABASE: prestashop
+      MYSQL_DATABASE: prestashop_${SHOP_ID:-0}
     ports:
       - "${MYSQL_PORT:-3300}:3306" 
     networks:
       - prestashop_network
       
   phpmyadmin:
-      # container_name: phpmyadmin-${SHOP_ID:-0}
+      container_name: phpmyadmin-${SHOP_ID:-0}
       image: phpmyadmin:latest
       ports:
       - "${PMA_PORT:-3000}:80"
       environment:
-        - PMA_HOST=mysql
+        - PMA_HOST=mysql-${SHOP_ID:-0}
         - PMA_PORT=3306
         - PMA_USER=prestashop
         - PMA_PASSWORD=prestashop

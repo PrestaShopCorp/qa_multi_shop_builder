@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+sleep 5 
 
 # CLI Installation
 php -d memory_limit=1024M install/index_cli.php \
