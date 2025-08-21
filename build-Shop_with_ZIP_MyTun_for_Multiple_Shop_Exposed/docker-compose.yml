@@ -33,7 +33,7 @@ services:
       MYSQL_PASSWORD: prestashop
       MYSQL_ROOT_PASSWORD: prestashop
       MYSQL_PORT: 3306
-      MYSQL_DATABASE: prestashop_${SHOP_ID:-0}
+      MYSQL_DATABASE: prestashop
     ports:
       - "${MYSQL_PORT:-3300}:3306" 
     networks:
@@ -65,7 +65,8 @@ services:
 
 networks:
   prestashop_network:
-    external: true
-    name: prestashop_global
+    driver: bridge
+    # external: true
+    # name: prestashop_global
 
   
