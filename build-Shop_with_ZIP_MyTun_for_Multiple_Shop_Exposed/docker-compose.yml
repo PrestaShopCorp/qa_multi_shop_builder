@@ -10,14 +10,18 @@ services:
       - ./prestashop.zip:/var/www/html/prestashop.zip
       - ./info.php:/var/www/html/info.php
       - ./php.ini:/usr/local/etc/php/conf.d/php.ini
-      - ./install_cli.sh:/install_cli.sh
+      - ./scripts/install_cli.sh:/install_cli.sh
     ports:
       - "${PS_PORT:-80}:80"
     command: >
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
-        chown -R www-data:www-data /var/www/html && \
         bash /install_cli.sh && \
+        mkdir -p /var/www/html/var/cache/prod /var/www/html/var/cache/dev /var/www/html/var/logs && \
+        chmod -R 777 /var/www/html/var && \
+        chmod 777 /tmp && \
+        rm -rf /var/www/html/var/cache/* && \
+        chown -R www-data:www-data /var/www/html && \
         apache2ctl -D FOREGROUND
       "
     networks:
