@@ -45,7 +45,7 @@ Cette commande :
    - Génère automatiquement les fichiers mytun-config.yml & mytun-credentials.yml pour exposer la boutique via MyTun
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/
+URL d’accès à la boutique : https://ton_domaine/admin-dev
 
 ---
 
@@ -63,7 +63,7 @@ Cette commande :
    - Utilise un reverse proxy Nginx pour rediriger /shop1 et /shop2
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/shop1 et https://ton_domaine_ngrok/shop2
+URL d’accès à la boutique : https://ton_domaine/shop1/admin-dev et https://ton_domaine/shop2/admin-dev
 
 ---
 
@@ -78,7 +78,7 @@ Cette commande :
    - Génère automatiquement les fichiers mytun-config.yml & mytun-credentials.yml pour exposer la boutique via MyTun
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/
+URL d’accès à la boutique : https://ton_domaine/admin-dev
 
 ---
 

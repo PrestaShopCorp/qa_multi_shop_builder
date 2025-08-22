@@ -39,7 +39,7 @@ Cette commande :
    - Génère automatiquement le fichier ngrok.yml pour exposer la boutique via Ngrok
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/
+URL d’accès à la boutique : https://ton_domaine_ngrok/admin-dev
 
 ---
 
@@ -57,7 +57,7 @@ Cette commande :
    - Utilise un reverse proxy Nginx pour rediriger /shop1 et /shop2
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/shop1 et https://ton_domaine_ngrok/shop2
+URL d’accès à la boutique : https://ton_domaine_ngrok/shop1/admin-dev et https://ton_domaine_ngrok/shop2/admin-dev
 
 ---
 
@@ -72,7 +72,7 @@ Cette commande :
    - Génère automatiquement le fichier ngrok.yml pour exposer la boutique via Ngrok
    - Démarre tous les conteneurs nécessaires en arrière-plan
 
-URL d’accès à la boutique : https://ton_domaine_ngrok/
+URL d’accès à la boutique : https://ton_domaine_ngrok/admin-dev
 
 ---
 

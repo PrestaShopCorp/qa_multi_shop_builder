@@ -13,7 +13,7 @@ Ce projet permet de créer une boutiques PrestaShop à partir d'un zip, accessib
 
 ---
 
-##  AVANT TOUTE ACTION ALLEZ DANS LE BON DOSSIER: => DANS LE TERMINAL TAPER LA COMMANDE "CD build-Shop_with_ZIP"
+##  AVANT TOUTE ACTION ALLEZ DANS LE BON DOSSIER: => DANS LE TERMINAL TAPER LA COMMANDE "CD build-Shop_with_ZIP_Ngrok"
 
 ---
 

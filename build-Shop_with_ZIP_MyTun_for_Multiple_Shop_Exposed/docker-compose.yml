@@ -16,6 +16,7 @@ services:
     command: >
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
+        rm -rf /var/www/html/modules/ps_edition_basic && \
         bash /install_cli.sh && \
         mkdir -p /var/www/html/var/cache/prod /var/www/html/var/cache/dev /var/www/html/var/logs && \
         chmod -R 777 /var/www/html/var && \
