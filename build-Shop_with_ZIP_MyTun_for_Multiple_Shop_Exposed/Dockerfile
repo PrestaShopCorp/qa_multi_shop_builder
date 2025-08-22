@@ -1,4 +1,4 @@
-FROM php:7.2-apache
+FROM php:8.1-apache
 
 # Ajouter le script d'installation des extensions PHP
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
@@ -8,6 +8,13 @@ RUN chmod uga+x /usr/local/bin/install-php-extensions && sync
 
 # Désactiver les invites interactives pendant l'installation
 ENV DEBIAN_FRONTEND=nointeractive
+
+# Fixe PHP7
+RUN if php -v | grep -q "^PHP 7"; then \
+        echo "deb http://archive.debian.org/debian/ buster main" > /etc/apt/sources.list && \
+        echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list && \
+        echo "Acquire::Check-Valid-Until \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-until; \
+    fi
 
 # Mise à jour des dépôts et installation des dépendances
 RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \

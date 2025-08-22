@@ -9,10 +9,8 @@ PHP_VERSION=$(echo $PHP_MIN | cut -d. -f1,2)
 
 #Réecrire la 1er ligne du Dockerfile
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS (BSD sed)
     sed -i '' "1s|.*|FROM php:${PHP_VERSION}-apache|" Dockerfile
 else
-    # Linux / WSL (GNU sed)
     sed -i "1s|.*|FROM php:${PHP_VERSION}-apache|" Dockerfile
 fi
 #Supprime le fichier 
