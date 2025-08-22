@@ -7,7 +7,7 @@ generate-config-file:
 	PS_DOMAIN=${PS_DOMAIN} SHOP_ID=${SHOP_ID} ACCOUNT_TAG=${ACCOUNT_TAG} TUNNEL_SECRET=${TUNNEL_SECRET} TUNNEL_ID=${TUNNEL_ID} ./myTun/config/generateConfigFiles.sh
 
 shop:
-# 	@docker network create prestashop_global 2>/dev/null || true
+	@docker network create prestashop_global || true
 	make generate-config-file
 
 	PS_PORT=$$((80 + $(SHOP_ID))); \

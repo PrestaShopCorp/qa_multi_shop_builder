@@ -65,8 +65,8 @@ services:
 
 networks:
   prestashop_network:
-    driver: bridge
-    # external: true
-    # name: prestashop_global
+    # driver: bridge
+    external: true
+    name: prestashop_global
 
   
