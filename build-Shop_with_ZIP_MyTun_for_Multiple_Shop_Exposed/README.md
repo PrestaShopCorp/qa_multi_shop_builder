@@ -95,12 +95,10 @@ Cette commande :
 
 URL d’accès à la boutique : https://prestashop0.ton_domaine/admin-dev
 
-**Pour créer d'autre autre shop qui tourne simultanément il faut ajouter un SHOP_ID après le make shop**
+**Pour créer d'autre autre shop qui tourne simultanément il faut ajouter un SHOP_ID après la commande make shop**
 
-'''
 - `make shop SHOP_ID=1` → Shop 1 accessible sur https://prestashop1.ton_domaine/admin-dev
 - `make shop SHOP_ID=2` → Shop 2 accessible sur https://prestashop2.ton_domaine/admin-dev
-'''
 
 Chaque shop fonctionne indépendamment avec sa propre base de données. Donc vous pouvez installer plusieurs versions de PS, qui vont tourner simultanément.
 
