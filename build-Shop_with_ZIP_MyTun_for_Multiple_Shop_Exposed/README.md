@@ -38,15 +38,15 @@ Dézipper le dossier de la version souhaitez contenant le prestashop.zip
 
 ---
 
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image.png)
+![alt text](/build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/screenshots_for_readme/image.png)
 
 ---
 
-Gilsser le prestashop.zip à la racine du dossier build-Shop_with_ZIP
+Gilsser le prestashop.zip à la racine du dossier build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed
 
 ---
 
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image1.png)
+![alt text](/build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/screenshots_for_readme/image1.png)
 
 ---
 
@@ -115,7 +115,7 @@ Si vous rencontrez une erreur 500, cela signifie qu'il faut modifier le fichier 
 
 ---
 
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image6.png)
+![alt text](/build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/screenshots_for_readme/image6.png)
 
 ---
 
@@ -131,7 +131,7 @@ Ensuite éditer le ficher, a la ligne 6 il faut ajouter 127.0.0.1,REMOTE_ADDR
 
 ---
 
-![alt text](/build-Shop_with_ZIP/screenshots_for_readme/image7.png)
+![alt text](/build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/screenshots_for_readme/image7.png)
 
 ---
 
