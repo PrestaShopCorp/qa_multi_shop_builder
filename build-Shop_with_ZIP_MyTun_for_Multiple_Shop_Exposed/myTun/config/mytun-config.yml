@@ -13,4 +13,8 @@ ingress:
     service: http://prestashop-2:80
     originRequest:
       httpHostHeader: "prestashop2.ervin-klicic-mytun.prestashop.name"
+  - hostname: "prestashop3.ervin-klicic-mytun.prestashop.name"
+    service: http://prestashop-3:80
+    originRequest:
+      httpHostHeader: "prestashop3.ervin-klicic-mytun.prestashop.name"
   - service: http_status:404
