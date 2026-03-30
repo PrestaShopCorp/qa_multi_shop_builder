@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QA Shop Builder UI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230d6b62'/%3E%3Cpath d='M20 22h24v6H20zm0 10h24v6H20zm0 10h16v6H20z' fill='%23fff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="page-header">
+        <div class="topbar">
+          <div class="brand-lockup">
+            <p class="eyebrow">Prestashop</p>
+            <span class="topbar-context">QA Builder</span>
+          </div>
+
+          <div class="language-switch">
+            <span class="language-label" id="languageLabel">Langue</span>
+            <div class="language-buttons" aria-label="Language selector">
+              <button class="language-button is-active" type="button" data-locale="fr" aria-pressed="true">
+                FR
+              </button>
+              <button class="language-button" type="button" data-locale="en" aria-pressed="false">
+                EN
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <h1 id="pageTitle">Creer une boutique</h1>
+          <p class="intro" id="introText">
+            Un parcours simple, etape par etape, pour les personnes qui ne veulent
+            pas passer par le terminal.
+          </p>
+        </div>
+      </header>
+
+      <section class="wizard">
+        <section class="step">
+          <div class="step-head">
+            <span class="step-number">1</span>
+            <div>
+              <h2 id="stepOneTitle">Credentials</h2>
+              <p id="stepOneText">Souhaitez-vous utiliser des credentials MyTun ou Ngrok ?</p>
+            </div>
+          </div>
+
+          <div class="choice-grid choice-grid-two" aria-label="Choix des credentials">
+            <button class="choice-card is-active" type="button" data-provider="mytun" aria-pressed="true">
+              <strong id="providerMytunLabel">MyTun</strong>
+              <span id="providerMytunDesc">Utiliser les credentials MyTun deja sauvegardes.</span>
+            </button>
+
+            <button class="choice-card" type="button" data-provider="ngrok" aria-pressed="false">
+              <strong id="providerNgrokLabel">Ngrok</strong>
+              <span id="providerNgrokDesc">Utiliser les credentials Ngrok deja sauvegardes.</span>
+            </button>
+          </div>
+
+          <p class="step-note" id="providerNote">
+            Les credentials MyTun sauvegardes sur cette machine seront reutilises.
+          </p>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-number">2</span>
+            <div>
+              <h2 id="stepTwoTitle">Installation</h2>
+              <p id="stepTwoText">Souhaitez-vous installer la boutique via image Docker ou via ZIP ?</p>
+            </div>
+          </div>
+
+          <div class="choice-grid choice-grid-two" aria-label="Choix de l installation">
+            <button class="choice-card is-active" type="button" data-source="image" aria-pressed="true">
+              <strong id="sourceImageLabel">Image Docker</strong>
+              <span id="sourceImageDesc">Utiliser les images et profils deja presents dans le projet.</span>
+            </button>
+
+            <button class="choice-card" type="button" data-source="zip" aria-pressed="false">
+              <strong id="sourceZipLabel">ZIP</strong>
+              <span id="sourceZipDesc">Utiliser un fichier prestashop.zip glisse dans l interface.</span>
+            </button>
+          </div>
+
+          <p class="step-note" id="sourceNote">
+            Vous partez sur un lancement depuis image Docker.
+          </p>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-number">3</span>
+            <div>
+              <h2 id="stepThreeTitle">Type de shop</h2>
+              <p id="stepThreeText">
+                Si vous choisissez une image, selectionnez le type de shop a lancer.
+              </p>
+            </div>
+          </div>
+
+          <div class="choice-grid choice-grid-three" id="imageOptions" aria-label="Choix du type de shop">
+            <button class="choice-card is-active" type="button" data-image-type="official" aria-pressed="true">
+              <strong id="imageOfficialLabel">Shop officiel</strong>
+              <span id="imageOfficialDesc">Flux standard base sur l image prestashop/prestashop.</span>
+            </button>
+
+            <button class="choice-card" type="button" data-image-type="flashlight" aria-pressed="false">
+              <strong id="imageFlashlightLabel">Flashlight</strong>
+              <span id="imageFlashlightDesc">Flux base sur l image prestashop/prestashop-flashlight.</span>
+            </button>
+
+            <button class="choice-card" type="button" data-image-type="multistore" aria-pressed="false">
+              <strong id="imageMultistoreLabel">Multistore multi-instance</strong>
+              <span id="imageMultistoreDesc">Deux shops et un reverse proxy pour les cas multi-instance.</span>
+            </button>
+          </div>
+
+          <div class="zip-panel is-hidden" id="zipPanel">
+            <input id="zipInput" type="file" accept=".zip,application/zip" hidden />
+
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Ajouter un fichier ZIP">
+              <strong id="dropzoneTitle">Glisser votre prestashop.zip ici</strong>
+              <span id="dropzoneText">ou cliquer pour choisir un fichier</span>
+            </div>
+
+            <p class="step-note" id="zipNote">Aucun fichier selectionne pour le moment.</p>
+          </div>
+        </section>
+
+        <section class="summary">
+          <h2 id="summaryTitleHeading">Resume</h2>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span id="summaryProviderLabel">Credentials</span>
+              <strong id="summaryProvider">MyTun</strong>
+            </div>
+
+            <div class="summary-item">
+              <span id="summarySourceLabel">Installation</span>
+              <strong id="summarySource">Image Docker</strong>
+            </div>
+
+            <div class="summary-item">
+              <span id="summaryChoiceLabel">Choix</span>
+              <strong id="summaryChoice">Shop officiel</strong>
+            </div>
+          </div>
+
+          <p class="summary-line" id="summaryLine">
+            Vous allez utiliser MyTun avec une image Docker de type shop officiel.
+          </p>
+        </section>
+
+        <div class="actions">
+          <button class="primary-button" type="button" id="primaryAction">Creer la boutique</button>
+          <button class="secondary-button" type="button" id="secondaryAction">Enregistrer les credentials</button>
+        </div>
+
+        <p class="footnote" id="footnoteText">
+          Prototype visuel uniquement. Aucun script n'est encore execute depuis cette interface.
+        </p>
+      </section>
+    </main>
+
+    <script src="./main.js"></script>
+  </body>
+</html>
