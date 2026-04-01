@@ -33,7 +33,7 @@ services:
     profiles: ["monostore", "multistore", "flashlight"]
 
   shop1:
-    image: prestashop/prestashop:nightly-apache
+    image: prestashop/prestashop:${SHOP1_IMAGE_TAG:-nightly-apache}
     container_name: shop1
     restart: unless-stopped
     user: root
@@ -66,7 +66,7 @@ services:
 
 
   shop2:
-    image: prestashop/prestashop:8.2-apache
+    image: prestashop/prestashop:${SHOP2_IMAGE_TAG:-8.2-apache}
     container_name: shop2
     restart: unless-stopped
     user: root
@@ -99,7 +99,7 @@ services:
 
   prestashop-flashlight:
     restart: unless-stopped
-    image: prestashop/prestashop-flashlight:8.2.0-8.1-fpm-alpine
+    image: prestashop/prestashop-flashlight:${FLASHLIGHT_IMAGE_TAG:-8.2.0-8.1-fpm-alpine}
     environment:
       ADMIN_MAIL: "admin@prestashop.com"
       ADMIN_PASSWD: "prestashop"
@@ -138,5 +138,4 @@ services:
 
 
       
-
 

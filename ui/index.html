@@ -66,6 +66,54 @@
           <p class="step-note" id="providerNote">
             Les credentials MyTun sauvegardes sur cette machine seront reutilises.
           </p>
+
+          <div class="credentials-panel">
+            <div class="credentials-form" id="mytunCredentialsForm">
+              <div class="field-grid">
+                <label class="field">
+                  <span id="mytunAccountTagLabel">Account tag</span>
+                  <input id="mytunAccountTagInput" type="text" autocomplete="off" />
+                </label>
+
+                <label class="field">
+                  <span id="mytunTunnelSecretLabel">Tunnel secret</span>
+                  <input id="mytunTunnelSecretInput" type="password" autocomplete="off" />
+                </label>
+
+                <label class="field">
+                  <span id="mytunTunnelIdLabel">Tunnel ID</span>
+                  <input id="mytunTunnelIdInput" type="text" autocomplete="off" />
+                </label>
+
+                <label class="field">
+                  <span id="mytunDomainLabel">Domaine</span>
+                  <input id="mytunDomainInput" type="text" autocomplete="off" />
+                </label>
+              </div>
+
+              <p class="credentials-helper" id="mytunDerivedDomainNote">
+                Saisissez uniquement le domaine MyTun de base. Le prefixe prestashop est fixe automatiquement.
+              </p>
+            </div>
+
+            <div class="credentials-form is-hidden" id="ngrokCredentialsForm">
+              <div class="field-grid field-grid-two">
+                <label class="field">
+                  <span id="ngrokAuthtokenLabel">Authtoken</span>
+                  <input id="ngrokAuthtokenInput" type="password" autocomplete="off" />
+                </label>
+
+                <label class="field">
+                  <span id="ngrokDomainLabel">Domaine public</span>
+                  <input id="ngrokDomainInput" type="text" autocomplete="off" />
+                </label>
+              </div>
+            </div>
+
+            <p class="credentials-helper" id="credentialsHelperText">
+              Les valeurs enregistrees seront reutilisees et les fichiers .env seront mis a jour automatiquement. La sauvegarde se fait automatiquement des que les champs obligatoires sont complets.
+            </p>
+          </div>
         </section>
 
         <section class="step">
@@ -131,6 +179,126 @@
             </div>
 
             <p class="step-note" id="zipNote">Aucun fichier selectionne pour le moment.</p>
+            <p class="credentials-helper" id="zipExecutionNote">
+              Pour l instant, le lancement ZIP utilise le prestashop.zip deja present dans le dossier du flow.
+            </p>
+          </div>
+        </section>
+
+        <section class="step is-hidden" id="imageVersionStep">
+          <div class="step-head">
+            <span class="step-number">4</span>
+            <div>
+              <h2 id="stepFourTitle">Version de l image</h2>
+              <p id="stepFourText">Choisissez la version de shop a utiliser pour ce lancement.</p>
+            </div>
+          </div>
+
+          <div class="image-version-panel" id="officialVersionPanel">
+            <div class="image-version-panel-head">
+              <h3 id="officialVersionHeading">Image officielle</h3>
+            </div>
+
+            <div class="version-card-grid">
+              <button class="version-card is-active" type="button" data-version-scope="official" data-version-value="9.0.2-apache" aria-pressed="true">
+                <strong>9.0.2-apache</strong>
+              </button>
+              <button class="version-card" type="button" data-version-scope="official" data-version-value="8.2.0-8.1" aria-pressed="false">
+                <strong>8.2.0-8.1</strong>
+              </button>
+              <button class="version-card" type="button" data-version-scope="official" data-version-value="1.7.8.8-7.4" aria-pressed="false">
+                <strong>1.7.8.8-7.4</strong>
+              </button>
+            </div>
+
+            <label class="field version-manual-field">
+              <span id="officialCustomLabel">Version manuelle</span>
+              <input id="officialCustomInput" type="text" autocomplete="off" placeholder="ex: nightly-apache" />
+            </label>
+            <p class="credentials-helper" id="officialManualNote">
+              Si vous remplissez ce champ, il remplace la selection ci-dessus.
+            </p>
+          </div>
+
+          <div class="image-version-panel is-hidden" id="flashlightVersionPanel">
+            <div class="image-version-panel-head">
+              <h3 id="flashlightVersionHeading">Image flashlight</h3>
+            </div>
+
+            <div class="version-card-grid version-card-grid-four">
+              <button class="version-card is-active" type="button" data-version-scope="flashlight" data-version-value="nightly-nginx" aria-pressed="true">
+                <strong>nightly-nginx</strong>
+              </button>
+              <button class="version-card" type="button" data-version-scope="flashlight" data-version-value="8.2.0-8.1-fpm-alpine" aria-pressed="false">
+                <strong>8.2.0-8.1-fpm-alpine</strong>
+              </button>
+              <button class="version-card" type="button" data-version-scope="flashlight" data-version-value="1.7.8.8-7.4-fpm-alpine" aria-pressed="false">
+                <strong>1.7.8.8-7.4-fpm-alpine</strong>
+              </button>
+              <button class="version-card" type="button" data-version-scope="flashlight" data-version-value="1.6.1.24-7.1-fpm-alpine" aria-pressed="false">
+                <strong>1.6.1.24-7.1-fpm-alpine</strong>
+              </button>
+            </div>
+
+            <label class="field version-manual-field">
+              <span id="flashlightCustomLabel">Version manuelle</span>
+              <input id="flashlightCustomInput" type="text" autocomplete="off" placeholder="ex: nightly-nginx" />
+            </label>
+            <p class="credentials-helper" id="flashlightManualNote">
+              Si vous remplissez ce champ, il remplace la selection ci-dessus.
+            </p>
+          </div>
+
+          <div class="image-version-panel is-hidden" id="multistoreVersionPanel">
+            <div class="image-version-panel-head">
+              <h3 id="multistoreVersionHeading">Versions des deux shops</h3>
+            </div>
+
+            <div class="multistore-version-layout">
+              <div class="shop-version-panel">
+                <h4 id="multistoreShop1Heading">Shop 1</h4>
+                <div class="version-card-grid">
+                  <button class="version-card is-active" type="button" data-version-scope="multistore-shop1" data-version-value="9.0.2-apache" aria-pressed="true">
+                    <strong>9.0.2-apache</strong>
+                  </button>
+                  <button class="version-card" type="button" data-version-scope="multistore-shop1" data-version-value="8.2.0-8.1" aria-pressed="false">
+                    <strong>8.2.0-8.1</strong>
+                  </button>
+                  <button class="version-card" type="button" data-version-scope="multistore-shop1" data-version-value="1.7.8.8-7.4" aria-pressed="false">
+                    <strong>1.7.8.8-7.4</strong>
+                  </button>
+                </div>
+
+                <label class="field version-manual-field">
+                  <span id="multistoreShop1CustomLabel">Version manuelle shop 1</span>
+                  <input id="multistoreShop1CustomInput" type="text" autocomplete="off" placeholder="ex: 9.0.2-apache" />
+                </label>
+              </div>
+
+              <div class="shop-version-panel">
+                <h4 id="multistoreShop2Heading">Shop 2</h4>
+                <div class="version-card-grid">
+                  <button class="version-card" type="button" data-version-scope="multistore-shop2" data-version-value="9.0.2-apache" aria-pressed="false">
+                    <strong>9.0.2-apache</strong>
+                  </button>
+                  <button class="version-card is-active" type="button" data-version-scope="multistore-shop2" data-version-value="8.2.0-8.1" aria-pressed="true">
+                    <strong>8.2.0-8.1</strong>
+                  </button>
+                  <button class="version-card" type="button" data-version-scope="multistore-shop2" data-version-value="1.7.8.8-7.4" aria-pressed="false">
+                    <strong>1.7.8.8-7.4</strong>
+                  </button>
+                </div>
+
+                <label class="field version-manual-field">
+                  <span id="multistoreShop2CustomLabel">Version manuelle shop 2</span>
+                  <input id="multistoreShop2CustomInput" type="text" autocomplete="off" placeholder="ex: 8.2.0-8.1" />
+                </label>
+              </div>
+            </div>
+
+            <p class="credentials-helper" id="multistoreManualNote">
+              Chaque champ manuel remplace la selection de preset du shop correspondant.
+            </p>
           </div>
         </section>
 
@@ -162,10 +330,34 @@
         <div class="actions">
           <button class="primary-button" type="button" id="primaryAction">Creer la boutique</button>
           <button class="secondary-button" type="button" id="secondaryAction">Enregistrer les credentials</button>
+          <button class="danger-button" type="button" id="tertiaryAction">Arreter la boutique</button>
         </div>
 
+        <p class="feedback-banner is-hidden" id="feedbackBanner" role="status" aria-live="polite"></p>
+
+        <section class="build-panel">
+          <div class="build-panel-head">
+            <h2 id="buildPanelTitle">Execution</h2>
+            <span class="build-status-badge is-idle" id="buildStatusBadge">Pret</span>
+          </div>
+
+          <p class="build-panel-meta" id="buildPanelMeta">Aucun lancement en cours pour le moment.</p>
+          <pre class="build-log" id="buildLog">Les logs apparaitront ici des que le script demarre.</pre>
+
+          <div class="access-panel">
+            <div class="access-panel-head">
+              <h3 id="accessPanelTitle">Acces</h3>
+            </div>
+
+            <p class="access-panel-note" id="accessPanelNote">
+              Les liens FO et BO apparaitront ici des que le domaine sera connu.
+            </p>
+            <div class="access-links" id="accessLinks"></div>
+          </div>
+        </section>
+
         <p class="footnote" id="footnoteText">
-          Prototype visuel uniquement. Aucun script n'est encore execute depuis cette interface.
+          Les credentials et le lancement des scripts sont maintenant disponibles depuis cette interface.
         </p>
       </section>
     </main>
