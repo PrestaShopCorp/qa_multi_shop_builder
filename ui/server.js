@@ -11,6 +11,7 @@ const DATA_DIR = path.join(ROOT_DIR, ".qa-shop-builder");
 const CREDENTIALS_FILE = path.join(DATA_DIR, "credentials.json");
 const BUILD_LOG_MAX_CHARS = 120000;
 const DEFAULT_SHOP_ID = 0;
+const MAX_ZIP_UPLOAD_BYTES = 1024 * 1024 * 512;
 
 const DEFAULT_CREDENTIALS = Object.freeze({
   mytun: {
@@ -28,6 +29,7 @@ const DEFAULT_CREDENTIALS = Object.freeze({
 
 let currentBuild = null;
 let buildCounter = 0;
+let buildPanels = [];
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -44,6 +46,7 @@ function normalizeBuildRequest(payload = {}) {
   const raw = payload.build ?? payload;
   const imageType =
     raw.imageType === "flashlight" || raw.imageType === "multistore" ? raw.imageType : "official";
+  const installMode = raw.installMode === "manual" ? "manual" : "auto";
   const parsedShopId = Number.parseInt(`${raw.shopId ?? DEFAULT_SHOP_ID}`, 10);
   const rawImages = raw.images ?? {};
 
@@ -52,6 +55,7 @@ function normalizeBuildRequest(payload = {}) {
     provider: raw.provider === "ngrok" ? "ngrok" : "mytun",
     source: raw.source === "zip" ? "zip" : "image",
     imageType,
+    installMode,
     shopId: Number.isNaN(parsedShopId) || parsedShopId < 0 ? DEFAULT_SHOP_ID : parsedShopId,
     images: {
       official: stripWrappingQuotes(normalizeString(rawImages.official)),
@@ -167,8 +171,8 @@ function getFlowSpec(buildRequest) {
 
     return {
       relativeWorkdir,
-      upArgs: [`SHOP_ID=${buildRequest.shopId}`, "shop"],
-      upCommand: `make SHOP_ID=${buildRequest.shopId} shop`,
+      upArgs: [`SHOP_ID=${buildRequest.shopId}`, `ZIP_INSTALL_MODE=${buildRequest.installMode}`, "shop"],
+      upCommand: `make SHOP_ID=${buildRequest.shopId} ZIP_INSTALL_MODE=${buildRequest.installMode} shop`,
       requiresZip: true,
       zipPath: path.join(ROOT_DIR, relativeWorkdir, "prestashop.zip"),
     };
@@ -177,8 +181,8 @@ function getFlowSpec(buildRequest) {
   const relativeWorkdir = "build-Shop_with_ZIP_Ngrok";
   return {
     relativeWorkdir,
-    upArgs: ["shop"],
-    upCommand: "make shop",
+    upArgs: [`ZIP_INSTALL_MODE=${buildRequest.installMode}`, "shop"],
+    upCommand: `make ZIP_INSTALL_MODE=${buildRequest.installMode} shop`,
     requiresZip: true,
     zipPath: path.join(ROOT_DIR, relativeWorkdir, "prestashop.zip"),
   };
@@ -189,6 +193,16 @@ function getBuildSpec(buildRequest) {
   const cwd = path.join(ROOT_DIR, flow.relativeWorkdir);
 
   if (buildRequest.action === "down") {
+    if (buildRequest.source === "zip" && buildRequest.provider === "mytun") {
+      return {
+        args: [`SHOP_ID=${buildRequest.shopId}`, "down"],
+        command: `make SHOP_ID=${buildRequest.shopId} down`,
+        cwd,
+        relativeWorkdir: flow.relativeWorkdir,
+        requiresZip: false,
+      };
+    }
+
     return {
       args: ["down"],
       command: "make down",
@@ -222,18 +236,65 @@ function appendBuildLogs(build, chunk) {
   build.updatedAt = new Date().toISOString();
 }
 
+function getBuildSlotKey(buildRequest) {
+  if (buildRequest.provider === "mytun" && buildRequest.source === "zip") {
+    return `mytun-zip-shop-${buildRequest.shopId}`;
+  }
+
+  return [
+    buildRequest.provider,
+    buildRequest.source,
+    buildRequest.imageType,
+    buildRequest.installMode,
+    buildRequest.shopId,
+  ].join(":");
+}
+
+function shouldRemovePanelAfterSuccess(build) {
+  return (
+    build &&
+    build.action === "down" &&
+    build.provider === "mytun" &&
+    build.source === "zip"
+  );
+}
+
+function removeBuildPanel(slotKey) {
+  buildPanels = buildPanels.filter((panel) => panel.slotKey !== slotKey);
+}
+
+function getZipUploadSpec(provider) {
+  if (provider === "ngrok") {
+    return {
+      relativePath: "build-Shop_with_ZIP_Ngrok/prestashop.zip",
+      absolutePath: path.join(ROOT_DIR, "build-Shop_with_ZIP_Ngrok", "prestashop.zip"),
+    };
+  }
+
+  return {
+    relativePath: "build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/prestashop.zip",
+    absolutePath: path.join(
+      ROOT_DIR,
+      "build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed",
+      "prestashop.zip"
+    ),
+  };
+}
+
 function serializeBuild(build) {
   if (!build) {
     return null;
   }
 
   return {
+    slotKey: build.slotKey,
     id: build.id,
     status: build.status,
     action: build.action,
     provider: build.provider,
     source: build.source,
     imageType: build.imageType,
+    installMode: build.installMode,
     images: build.images,
     shopId: build.shopId,
     command: build.command,
@@ -245,6 +306,10 @@ function serializeBuild(build) {
     endedAt: build.endedAt,
     updatedAt: build.updatedAt,
   };
+}
+
+function serializeBuildPanels() {
+  return buildPanels.map((build) => serializeBuild(build));
 }
 
 function finalizeBuild(build, status, options = {}) {
@@ -299,7 +364,12 @@ function validateBuildCredentials(credentials, buildRequest) {
 function getBuildEnv(buildRequest) {
   const env = { ...process.env };
 
-  if (buildRequest.action !== "up" || buildRequest.source !== "image") {
+  if (buildRequest.action !== "up") {
+    return env;
+  }
+
+  if (buildRequest.source === "zip") {
+    env.ZIP_INSTALL_MODE = buildRequest.installMode;
     return env;
   }
 
@@ -481,18 +551,27 @@ async function launchBuild(payload) {
   const buildSpec = getBuildSpec(buildRequest);
   await ensureBuildPrerequisites(buildSpec);
 
+  const existingPanelIndex = buildPanels.findIndex(
+    (panel) => panel.slotKey === getBuildSlotKey(buildRequest)
+  );
+  const previousPanel = existingPanelIndex >= 0 ? buildPanels[existingPanelIndex] : null;
+  const previousLogs = previousPanel?.logs?.trim()
+    ? `${previousPanel.logs}\n\n---\n\n`
+    : "";
   const build = {
+    slotKey: getBuildSlotKey(buildRequest),
     id: `build-${Date.now()}-${++buildCounter}`,
     status: "running",
     action: buildRequest.action,
     provider: buildRequest.provider,
     source: buildRequest.source,
     imageType: buildRequest.imageType,
+    installMode: buildRequest.installMode,
     images: buildRequest.images,
     shopId: buildRequest.shopId,
     command: buildSpec.command,
     workdir: buildSpec.relativeWorkdir,
-    logs: "",
+    logs: previousLogs,
     exitCode: null,
     errorMessage: "",
     startedAt: new Date().toISOString(),
@@ -500,6 +579,12 @@ async function launchBuild(payload) {
     updatedAt: new Date().toISOString(),
     child: null,
   };
+
+  if (existingPanelIndex >= 0) {
+    buildPanels[existingPanelIndex] = build;
+  } else {
+    buildPanels.push(build);
+  }
 
   currentBuild = build;
   appendBuildLogs(build, `$ ${build.command}\n\n`);
@@ -538,6 +623,9 @@ async function launchBuild(payload) {
     if (code === 0) {
       appendBuildLogs(build, "\nProcess finished successfully.\n");
       finalizeBuild(build, "succeeded", { exitCode: 0 });
+      if (shouldRemovePanelAfterSuccess(build)) {
+        removeBuildPanel(build.slotKey);
+      }
       return;
     }
 
@@ -551,6 +639,7 @@ async function launchBuild(payload) {
   return {
     credentials: persistResult.credentials,
     build: serializeBuild(build),
+    builds: serializeBuildPanels(),
     updatedEnvFiles: persistResult.updatedEnvFiles,
   };
 }
@@ -591,6 +680,50 @@ async function readJsonBody(request) {
   });
 }
 
+async function readBinaryBody(request) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let totalBytes = 0;
+
+    request.on("data", (chunk) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_ZIP_UPLOAD_BYTES) {
+        reject(new Error("ZIP upload is too large."));
+        request.destroy();
+        return;
+      }
+
+      chunks.push(chunk);
+    });
+
+    request.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+
+    request.on("error", reject);
+  });
+}
+
+async function persistUploadedZip(request) {
+  const provider = request.headers["x-provider"] === "ngrok" ? "ngrok" : "mytun";
+  const uploadSpec = getZipUploadSpec(provider);
+  const zipBuffer = await readBinaryBody(request);
+
+  if (!zipBuffer.length) {
+    const error = new Error("ZIP upload is empty.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  await fs.writeFile(uploadSpec.absolutePath, zipBuffer);
+
+  return {
+    provider,
+    relativePath: uploadSpec.relativePath,
+    size: zipBuffer.length,
+  };
+}
+
 async function serveStaticFile(response, pathname) {
   const safePath = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   const absolutePath = path.resolve(UI_DIR, safePath);
@@ -629,7 +762,10 @@ const server = http.createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/api/build") {
-      sendJson(response, 200, { build: serializeBuild(currentBuild) });
+      sendJson(response, 200, {
+        build: serializeBuild(currentBuild),
+        builds: serializeBuildPanels(),
+      });
       return;
     }
 
@@ -647,6 +783,12 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "POST" && url.pathname === "/api/zip") {
+      const result = await persistUploadedZip(request);
+      sendJson(response, 200, result);
+      return;
+    }
+
     if (request.method === "GET") {
       await serveStaticFile(response, url.pathname);
       return;
@@ -657,6 +799,7 @@ const server = http.createServer(async (request, response) => {
     sendJson(response, error.statusCode || 500, {
       error: error.message || "Unexpected server error",
       build: serializeBuild(currentBuild),
+      builds: serializeBuildPanels(),
     });
   }
 });

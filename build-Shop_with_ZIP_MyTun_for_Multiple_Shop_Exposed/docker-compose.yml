@@ -5,7 +5,8 @@ services:
     build: .
     environment:
       - PS_DOMAIN=${PS_DOMAIN}
-      - SHOP_ID=${SHOP_ID:-0} 
+      - SHOP_ID=${SHOP_ID:-0}
+      - ZIP_INSTALL_MODE=${ZIP_INSTALL_MODE:-auto}
     volumes:
       - ./prestashop.zip:/var/www/html/prestashop.zip
       - ./info.php:/var/www/html/info.php
@@ -17,7 +18,7 @@ services:
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
         rm -rf /var/www/html/modules/ps_edition_basic && \
-        bash /install_cli.sh && \
+        if [ \"$$ZIP_INSTALL_MODE\" = \"manual\" ]; then echo 'Shop Ready For Manual Installation'; else bash /install_cli.sh; fi && \
         mkdir -p /var/www/html/var/cache/prod /var/www/html/var/cache/dev /var/www/html/var/logs && \
         chmod -R 777 /var/www/html/var && \
         chmod 777 /tmp && \

@@ -4,6 +4,7 @@ services:
     build: .
     environment:
       - PS_DOMAIN=${PS_DOMAIN}
+      - ZIP_INSTALL_MODE=${ZIP_INSTALL_MODE:-auto}
     volumes:
       - ./prestashop.zip:/var/www/html/prestashop.zip
       - ./info.php:/var/www/html/info.php
@@ -15,7 +16,7 @@ services:
       bash -c "
         unzip -o /var/www/html/prestashop.zip -d /var/www/html/ && \
         chown -R www-data:www-data /var/www/html && \
-        bash /install_cli.sh && \
+        if [ \"$$ZIP_INSTALL_MODE\" = \"manual\" ]; then echo 'Shop Ready For Manual Installation'; else bash /install_cli.sh; fi && \
         apache2ctl -D FOREGROUND
       "
     networks:

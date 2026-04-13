@@ -55,11 +55,14 @@ const state = {
   provider: "mytun",
   source: "image",
   imageType: "official",
+  zipInstallMode: "auto",
   imageSelections: cloneImageSelections(defaultImageSelections),
+  zipFile: null,
   zipFileName: "",
   credentials: cloneCredentials(defaultCredentials),
   feedback: null,
   build: null,
+  builds: [],
 };
 
 let autoSaveTimer = null;
@@ -99,7 +102,7 @@ const translations = {
     sourceImageLabel: "Image Docker",
     sourceImageDesc: "Utiliser les images et profils deja presents dans le projet.",
     sourceZipLabel: "ZIP",
-    sourceZipDesc: "Utiliser un fichier prestashop.zip glisse dans l interface.",
+    sourceZipDesc: "Utiliser un fichier prestashop.zip glisse dans l'interface.",
     sourceNotes: {
       image: "Vous partez sur un lancement depuis image Docker.",
       zip: "Vous partez sur une installation depuis fichier ZIP.",
@@ -112,23 +115,40 @@ const translations = {
       image: "Si vous choisissez une image, selectionnez le type de shop a lancer.",
       zip: "Glissez un fichier prestashop.zip dans la zone ci-dessous.",
     },
+    zipInstallTitle: "Mode d'installation",
+    zipInstallText:
+      "Pour une installation ZIP, souhaitez-vous lancer le script automatiquement ou terminer l'installation a la main dans le navigateur ?",
+    zipInstallModes: {
+      auto: {
+        label: "Installation automatique",
+        desc: "La boutique s'installe et prepare le BO automatiquement.",
+      },
+      manual: {
+        label: "Installation manuelle",
+        desc: "Les fichiers sont prepares, puis vous terminez l'installation depuis l'assistant PrestaShop dans le navigateur.",
+      },
+    },
+    zipInstallNotes: {
+      auto: "L'installation se fera automatiquement pendant le lancement du conteneur.",
+      manual: "La boutique s'ouvrira sur l'assistant d'installation PrestaShop. Le BO ne sera pas encore disponible a ce stade.",
+    },
     imageTypes: {
       official: {
         label: "Shop officiel",
-        desc: "Flux standard base sur l image prestashop/prestashop.",
+        desc: "Flux standard base sur l'image prestashop/prestashop.",
       },
       flashlight: {
         label: "Flashlight",
-        desc: "Flux base sur l image prestashop/prestashop-flashlight.",
+        desc: "Flux base sur l'image prestashop/prestashop-flashlight.",
       },
       multistore: {
         label: "Multistore multi-instance",
         desc: "Deux shops et un reverse proxy pour les cas multi-instance.",
       },
     },
-    stepFourTitle: "Version de l image",
+    stepFourTitle: "Version de l'image",
     stepFourTexts: {
-      official: "Choisissez la version de PrestaShop a utiliser pour l image officielle.",
+      official: "Choisissez la version de PrestaShop a utiliser pour l'image officielle.",
       flashlight: "Choisissez la version de PrestaShop a utiliser pour flashlight.",
       multistore: "Choisissez la version de chaque shop pour le mode multi-instance.",
     },
@@ -153,9 +173,12 @@ const translations = {
     zipDropIdleText: "ou cliquer pour choisir un fichier",
     zipDropReadyText: "Fichier pret pour la prochaine etape",
     zipNoteEmpty: "Aucun fichier selectionne pour le moment.",
-    zipNoteSelected: (fileName) => `Fichier selectionne : ${fileName}`,
-    zipExecutionNote:
-      "Pour l instant, le lancement ZIP utilise le prestashop.zip deja present dans le dossier du flow.",
+    zipNoteSelected: (fileName, selectedAt) =>
+      selectedAt ? `Fichier selectionne : ${fileName} • ${selectedAt}` : `Fichier selectionne : ${fileName}`,
+    zipExecutionNotes: {
+      auto: "Pour l'instant, le lancement ZIP utilise le prestashop.zip deja present dans le dossier du flow.",
+      manual: "Pour l'instant, le lancement ZIP utilise le prestashop.zip deja present dans le dossier du flow et vous laissera terminer l'installation a la main.",
+    },
     summaryTitle: "Resume",
     summaryProviderLabel: "Credentials",
     summarySourceLabel: "Installation",
@@ -166,17 +189,18 @@ const translations = {
     },
     summaryLineImage: (providerLabel, imageLabel) =>
       `Vous allez utiliser ${providerLabel} avec une image Docker de type ${imageLabel}.`,
-    summaryLineZip: (providerLabel) =>
-      `Vous allez utiliser ${providerLabel} avec une installation depuis ZIP.`,
+    summaryLineZip: (providerLabel, installModeLabel) =>
+      `Vous allez utiliser ${providerLabel} avec une installation depuis ZIP en mode ${installModeLabel.toLowerCase()}.`,
     primaryAction: "Creer la boutique",
     tertiaryAction: "Arreter la boutique",
     secondaryAction: "Enregistrer les credentials",
+    additionalShopAction: "Creer un autre shop",
     footnote:
       "Les credentials et le lancement des scripts sont maintenant disponibles depuis cette interface.",
     validationErrors: {
-      mytun: "Veuillez renseigner tous les champs MyTun avant d enregistrer.",
-      ngrok: "Veuillez renseigner tous les champs Ngrok avant d enregistrer.",
-      officialImage: "Veuillez choisir une version pour l image officielle.",
+      mytun: "Veuillez renseigner tous les champs MyTun avant d'enregistrer.",
+      ngrok: "Veuillez renseigner tous les champs Ngrok avant d'enregistrer.",
+      officialImage: "Veuillez choisir une version pour l'image officielle.",
       flashlightImage: "Veuillez choisir une version pour flashlight.",
       multistoreImages: "Veuillez choisir une version pour les deux shops du multi-instance.",
     },
@@ -189,10 +213,12 @@ const translations = {
     loadError:
       "Impossible de charger les credentials locaux. Lancez npm start dans le dossier ui puis rechargez la page.",
     buildPending: (count) =>
-      `Credentials sauvegardes. ${count} fichier(s) .env ont ete mis a jour. Le lancement du build sera branche a l etape suivante.`,
+      `Credentials sauvegardes. ${count} fichier(s) .env ont ete mis a jour. Le lancement du build sera branche a l'etape suivante.`,
     primaryActionRunning: "Lancement en cours...",
     tertiaryActionRunning: "Arret en cours...",
     buildPanelTitle: "Execution",
+    buildPanelTitleForShop: (shopId) => `Execution • Shop ${shopId}`,
+    stopSpecificShopAction: "Arreter cette shop",
     buildStatusLabels: {
       idle: "Pret",
       running: "En cours",
@@ -204,10 +230,11 @@ const translations = {
     buildLogEmpty: "Les logs apparaitront ici des que le script demarre.",
     accessPanelTitle: "Acces",
     accessPanelEmpty:
-      "Les liens FO et BO apparaitront ici une fois la boutique lancee.",
+      "Les liens d'acces apparaitront ici une fois la boutique lancee.",
     accessLinkLabels: {
       fo: "FO",
       bo: "BO",
+      install: "Installation",
       shop1Fo: "Shop 1 FO",
       shop1Bo: "Shop 1 BO",
       shop2Fo: "Shop 2 FO",
@@ -216,25 +243,27 @@ const translations = {
     buildStartSuccess: (command) => `Lancement demarre: ${command}`,
     stopStartSuccess: (command) => `Arret demarre: ${command}`,
     buildStartError:
-      "Impossible de lancer la boutique depuis l interface.",
+      "Impossible de lancer la boutique depuis l'interface.",
     stopStartError:
-      "Impossible d arreter la boutique depuis l interface.",
+      "Impossible d'arreter la boutique depuis l'interface.",
     buildAlreadyRunning:
       "Un lancement est deja en cours. Consultez les logs ci-dessous.",
     buildMissingZip:
-      "Aucun prestashop.zip n a ete trouve pour ce flow ZIP.",
+      "Aucun prestashop.zip n'a ete trouve pour ce flow ZIP.",
+    zipUploadError:
+      "Impossible d'envoyer le ZIP selectionne vers le flow cible.",
     buildLoadError:
-      "Impossible de recuperer l etat du lancement en cours.",
-    buildCompletedSuccess: "La commande s est terminee avec succes.",
-    stopCompletedSuccess: "La commande d arret s est terminee avec succes.",
+      "Impossible de recuperer l'etat du lancement en cours.",
+    buildCompletedSuccess: "La commande s'est terminee avec succes.",
+    stopCompletedSuccess: "La commande d'arret s'est terminee avec succes.",
     buildCompletedError: (code) =>
       code || code === 0
         ? `La commande a echoue avec le code ${code}.`
         : "La commande a echoue.",
     stopCompletedError: (code) =>
       code || code === 0
-        ? `La commande d arret a echoue avec le code ${code}.`
-        : "La commande d arret a echoue.",
+        ? `La commande d'arret a echoue avec le code ${code}.`
+        : "La commande d'arret a echoue.",
   },
   en: {
     languageLabel: "Language",
@@ -281,6 +310,23 @@ const translations = {
       image: "If you choose an image, select the type of shop to launch.",
       zip: "Drop a prestashop.zip file in the area below.",
     },
+    zipInstallTitle: "Installation mode",
+    zipInstallText:
+      "For a ZIP installation, do you want to run the script automatically or complete the installation manually in the browser?",
+    zipInstallModes: {
+      auto: {
+        label: "Automatic installation",
+        desc: "The shop installs itself and prepares the back office automatically.",
+      },
+      manual: {
+        label: "Manual installation",
+        desc: "The files are prepared first, then you finish the installation from the PrestaShop installer in the browser.",
+      },
+    },
+    zipInstallNotes: {
+      auto: "The installation will run automatically during container startup.",
+      manual: "The shop will open on the PrestaShop installer. The back office will not be available yet at this stage.",
+    },
     imageTypes: {
       official: {
         label: "Official shop",
@@ -322,9 +368,12 @@ const translations = {
     zipDropIdleText: "or click to choose a file",
     zipDropReadyText: "File ready for the next step",
     zipNoteEmpty: "No file selected yet.",
-    zipNoteSelected: (fileName) => `Selected file: ${fileName}`,
-    zipExecutionNote:
-      "For now, ZIP launch uses the prestashop.zip already present in the target flow folder.",
+    zipNoteSelected: (fileName, selectedAt) =>
+      selectedAt ? `Selected file: ${fileName} • ${selectedAt}` : `Selected file: ${fileName}`,
+    zipExecutionNotes: {
+      auto: "For now, ZIP launch uses the prestashop.zip already present in the target flow folder.",
+      manual: "For now, ZIP launch uses the prestashop.zip already present in the target flow folder and lets you finish the installation manually.",
+    },
     summaryTitle: "Summary",
     summaryProviderLabel: "Credentials",
     summarySourceLabel: "Installation",
@@ -335,11 +384,12 @@ const translations = {
     },
     summaryLineImage: (providerLabel, imageLabel) =>
       `You are about to use ${providerLabel} with the ${imageLabel} Docker image flow.`,
-    summaryLineZip: (providerLabel) =>
-      `You are about to use ${providerLabel} with a ZIP installation flow.`,
+    summaryLineZip: (providerLabel, installModeLabel) =>
+      `You are about to use ${providerLabel} with a ZIP installation flow in ${installModeLabel.toLowerCase()} mode.`,
     primaryAction: "Create the shop",
     tertiaryAction: "Stop the shop",
     secondaryAction: "Save credentials",
+    additionalShopAction: "Create another shop",
     footnote:
       "Credentials saving and script launch are now available from this interface.",
     validationErrors: {
@@ -362,6 +412,8 @@ const translations = {
     primaryActionRunning: "Launching...",
     tertiaryActionRunning: "Stopping...",
     buildPanelTitle: "Execution",
+    buildPanelTitleForShop: (shopId) => `Execution • Shop ${shopId}`,
+    stopSpecificShopAction: "Stop this shop",
     buildStatusLabels: {
       idle: "Ready",
       running: "Running",
@@ -373,10 +425,11 @@ const translations = {
     buildLogEmpty: "Logs will appear here as soon as the script starts.",
     accessPanelTitle: "Access",
     accessPanelEmpty:
-      "FO and BO links will appear here once the shop has been launched.",
+      "Access links will appear here once the shop has been launched.",
     accessLinkLabels: {
       fo: "FO",
       bo: "BO",
+      install: "Install",
       shop1Fo: "Shop 1 FO",
       shop1Bo: "Shop 1 BO",
       shop2Fo: "Shop 2 FO",
@@ -392,6 +445,8 @@ const translations = {
       "A build is already running. Check the logs below.",
     buildMissingZip:
       "No prestashop.zip was found for this ZIP flow.",
+    zipUploadError:
+      "Unable to upload the selected ZIP to the target flow.",
     buildLoadError:
       "Unable to retrieve the current build status.",
     buildCompletedSuccess: "The command finished successfully.",
@@ -410,6 +465,7 @@ const translations = {
 const providerButtons = [...document.querySelectorAll("[data-provider]")];
 const sourceButtons = [...document.querySelectorAll("[data-source]")];
 const imageTypeButtons = [...document.querySelectorAll("[data-image-type]")];
+const zipInstallButtons = [...document.querySelectorAll("[data-zip-install-mode]")];
 const versionButtons = [...document.querySelectorAll("[data-version-scope]")];
 const localeButtons = [...document.querySelectorAll("[data-locale]")];
 
@@ -456,6 +512,14 @@ const elements = {
   imageMultistoreLabel: document.getElementById("imageMultistoreLabel"),
   imageMultistoreDesc: document.getElementById("imageMultistoreDesc"),
   imageOptions: document.getElementById("imageOptions"),
+  zipInstallStep: document.getElementById("zipInstallStep"),
+  zipInstallTitle: document.getElementById("zipInstallTitle"),
+  zipInstallText: document.getElementById("zipInstallText"),
+  zipInstallAutoLabel: document.getElementById("zipInstallAutoLabel"),
+  zipInstallAutoDesc: document.getElementById("zipInstallAutoDesc"),
+  zipInstallManualLabel: document.getElementById("zipInstallManualLabel"),
+  zipInstallManualDesc: document.getElementById("zipInstallManualDesc"),
+  zipInstallNote: document.getElementById("zipInstallNote"),
   imageVersionStep: document.getElementById("imageVersionStep"),
   stepFourTitle: document.getElementById("stepFourTitle"),
   stepFourText: document.getElementById("stepFourText"),
@@ -496,14 +560,9 @@ const elements = {
   primaryAction: document.getElementById("primaryAction"),
   secondaryAction: document.getElementById("secondaryAction"),
   tertiaryAction: document.getElementById("tertiaryAction"),
+  additionalShopAction: document.getElementById("additionalShopAction"),
   feedbackBanner: document.getElementById("feedbackBanner"),
-  buildPanelTitle: document.getElementById("buildPanelTitle"),
-  buildStatusBadge: document.getElementById("buildStatusBadge"),
-  buildPanelMeta: document.getElementById("buildPanelMeta"),
-  buildLog: document.getElementById("buildLog"),
-  accessPanelTitle: document.getElementById("accessPanelTitle"),
-  accessPanelNote: document.getElementById("accessPanelNote"),
-  accessLinks: document.getElementById("accessLinks"),
+  buildPanels: document.getElementById("buildPanels"),
   footnoteText: document.getElementById("footnoteText"),
 };
 
@@ -588,8 +647,49 @@ function getTranslation() {
   return translations[state.locale];
 }
 
+function formatZipSelectionDate(file) {
+  if (!file?.lastModified) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(state.locale, {
+    dateStyle: "short",
+    timeStyle: "medium",
+  }).format(new Date(file.lastModified));
+}
+
 function getProviderLabel(copy, providerKey) {
   return providerKey === "mytun" ? copy.mytunLabel : copy.ngrokLabel;
+}
+
+function getZipInstallModeLabel(copy, mode) {
+  return copy.zipInstallModes[mode]?.label || copy.zipInstallModes.auto.label;
+}
+
+function isMytunZipFlow() {
+  return state.provider === "mytun" && state.source === "zip";
+}
+
+function isMytunZipBuild(build) {
+  return build?.provider === "mytun" && build?.source === "zip";
+}
+
+function getNextAdditionalShopId() {
+  const mytunZipBuilds = state.builds.filter(isMytunZipBuild);
+
+  if (!mytunZipBuilds.length) {
+    return 1;
+  }
+
+  return (
+    mytunZipBuilds.reduce((maxShopId, build) => Math.max(maxShopId, build.shopId), DEFAULT_SHOP_ID) + 1
+  );
+}
+
+function hasPrimaryMytunZipShop() {
+  return state.builds.some(
+    (build) => isMytunZipBuild(build) && build.shopId === DEFAULT_SHOP_ID && build.status === "succeeded"
+  );
 }
 
 function mergeCredentials(credentials = {}) {
@@ -618,12 +718,15 @@ function normalizeBuild(build) {
   }
 
   return {
+    slotKey: build.slotKey || "",
     id: build.id,
     status: build.status || "idle",
     action: build.action === "down" ? "down" : "up",
     provider: build.provider || state.provider,
     source: build.source || state.source,
     imageType: build.imageType || state.imageType,
+    installMode: build.installMode === "manual" ? "manual" : "auto",
+    images: build.images || null,
     shopId: Number.isInteger(build.shopId) ? build.shopId : DEFAULT_SHOP_ID,
     command: build.command || "",
     workdir: build.workdir || "",
@@ -634,6 +737,10 @@ function normalizeBuild(build) {
     endedAt: build.endedAt || "",
     updatedAt: build.updatedAt || "",
   };
+}
+
+function normalizeBuilds(builds = []) {
+  return Array.isArray(builds) ? builds.map((build) => normalizeBuild(build)).filter(Boolean) : [];
 }
 
 function stopBuildPolling() {
@@ -654,34 +761,16 @@ function getBuildStatusLabel(copy, status) {
   return copy.buildStatusLabels[status] || copy.buildStatusLabels.idle;
 }
 
-function getBuildMeta(copy) {
-  if (!state.build || !state.build.command) {
+function getBuildMeta(copy, build) {
+  if (!build || !build.command) {
     return copy.buildMetaIdle;
   }
 
-  return copy.buildMeta(state.build.command, state.build.workdir);
+  return copy.buildMeta(build.command, build.workdir);
 }
 
-function getActiveAccessContext() {
-  if (state.build && state.build.action === "up" && state.build.status === "succeeded") {
-    return {
-      provider: state.build.provider,
-      source: state.build.source,
-      imageType: state.build.imageType,
-      shopId: state.build.shopId,
-    };
-  }
-
-  return {
-    provider: state.provider,
-    source: state.source,
-    imageType: state.imageType,
-    shopId: DEFAULT_SHOP_ID,
-  };
-}
-
-function getAccessBaseDomain(context) {
-  if (context.provider === "ngrok") {
+function getAccessBaseDomain(build) {
+  if (build.provider === "ngrok") {
     return state.credentials.ngrok.PS_DOMAIN.trim();
   }
 
@@ -690,25 +779,19 @@ function getAccessBaseDomain(context) {
     return "";
   }
 
-  if (context.source === "zip") {
-    return `${MYTUN_PREFIX}${context.shopId}.${domain}`;
+  if (build.source === "zip") {
+    return `${MYTUN_PREFIX}${build.shopId}.${domain}`;
   }
 
   return `${MYTUN_PREFIX}.${domain}`;
 }
 
-function getAccessEntries(copy) {
-  const shouldShowAccess =
-    state.build &&
-    state.build.action === "up" &&
-    state.build.status === "succeeded";
-
-  if (!shouldShowAccess) {
+function getAccessEntries(copy, build) {
+  if (!build || build.action !== "up" || build.status !== "succeeded") {
     return [];
   }
 
-  const context = getActiveAccessContext();
-  const domain = getAccessBaseDomain(context);
+  const domain = getAccessBaseDomain(build);
 
   if (!domain) {
     return [];
@@ -716,7 +799,11 @@ function getAccessEntries(copy) {
 
   const root = `https://${domain}`;
 
-  if (context.source === "image" && context.imageType === "multistore") {
+  if (build.source === "zip" && build.installMode === "manual") {
+    return [{ label: copy.accessLinkLabels.install, href: `${root}/` }];
+  }
+
+  if (build.source === "image" && build.imageType === "multistore") {
     return [
       { label: copy.accessLinkLabels.shop1Fo, href: `${root}/shop1` },
       { label: copy.accessLinkLabels.shop1Bo, href: `${root}/shop1/admin-dev` },
@@ -731,49 +818,115 @@ function getAccessEntries(copy) {
   ];
 }
 
-function renderAccessLinks() {
+function getBuildPanelTitle(copy, build) {
+  if (isMytunZipBuild(build)) {
+    return copy.buildPanelTitleForShop(build.shopId);
+  }
+
+  return copy.buildPanelTitle;
+}
+
+function renderBuildPanels() {
   const copy = getTranslation();
-  const entries = getAccessEntries(copy);
+  const builds = state.builds.length ? state.builds : [null];
 
-  elements.accessPanelTitle.textContent = copy.accessPanelTitle;
-  elements.accessPanelNote.textContent = copy.accessPanelEmpty;
-  elements.accessPanelNote.classList.toggle("is-hidden", entries.length > 0);
-  elements.accessLinks.replaceChildren();
+  elements.buildPanels.replaceChildren();
 
-  entries.forEach((entry) => {
-    const link = document.createElement("a");
-    link.className = "access-link-card";
-    link.href = entry.href;
-    link.target = "_blank";
-    link.rel = "noreferrer";
+  builds.forEach((build) => {
+    const status = build?.status || "idle";
+    const logs = build?.logs?.trim() ? build.logs : copy.buildLogEmpty;
+    const panel = document.createElement("section");
+    panel.className = "build-panel";
 
-    const label = document.createElement("span");
-    label.textContent = entry.label;
+    const head = document.createElement("div");
+    head.className = "build-panel-head";
 
-    const value = document.createElement("strong");
-    value.textContent = entry.href;
+    const title = document.createElement("h2");
+    title.textContent = build ? getBuildPanelTitle(copy, build) : copy.buildPanelTitle;
 
-    link.append(label, value);
-    elements.accessLinks.append(link);
+    const headActions = document.createElement("div");
+    headActions.className = "build-panel-head-actions";
+
+    if (build && isMytunZipBuild(build) && build.action === "up" && build.status === "succeeded") {
+      const stopButton = document.createElement("button");
+      stopButton.type = "button";
+      stopButton.className = "build-panel-action-button";
+      stopButton.textContent = copy.stopSpecificShopAction;
+      stopButton.disabled = state.build?.status === "running";
+      stopButton.addEventListener("click", async () => {
+        await launchBuild("down", {
+          provider: build.provider,
+          source: build.source,
+          imageType: build.imageType,
+          installMode: build.installMode,
+          shopId: build.shopId,
+        });
+      });
+      headActions.append(stopButton);
+    }
+
+    const badge = document.createElement("span");
+    badge.className = `build-status-badge is-${status}`;
+    badge.textContent = getBuildStatusLabel(copy, status);
+    headActions.append(badge);
+
+    head.append(title, headActions);
+
+    const meta = document.createElement("p");
+    meta.className = "build-panel-meta";
+    meta.textContent = getBuildMeta(copy, build);
+
+    const log = document.createElement("pre");
+    log.className = "build-log";
+    log.textContent = logs;
+
+    const accessPanel = document.createElement("div");
+    accessPanel.className = "access-panel";
+
+    const accessPanelHead = document.createElement("div");
+    accessPanelHead.className = "access-panel-head";
+
+    const accessTitle = document.createElement("h3");
+    accessTitle.textContent = copy.accessPanelTitle;
+    accessPanelHead.append(accessTitle);
+
+    const accessNote = document.createElement("p");
+    accessNote.className = "access-panel-note";
+
+    const accessLinks = document.createElement("div");
+    accessLinks.className = "access-links";
+
+    const entries = getAccessEntries(copy, build);
+    accessNote.textContent = copy.accessPanelEmpty;
+    accessNote.classList.toggle("is-hidden", entries.length > 0);
+
+    entries.forEach((entry) => {
+      const link = document.createElement("a");
+      link.className = "access-link-card";
+      link.href = entry.href;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+
+      const label = document.createElement("span");
+      label.textContent = entry.label;
+
+      const value = document.createElement("strong");
+      value.textContent = entry.href;
+
+      link.append(label, value);
+      accessLinks.append(link);
+    });
+
+    accessPanel.append(accessPanelHead, accessNote, accessLinks);
+    panel.append(head, meta, log, accessPanel);
+    elements.buildPanels.append(panel);
   });
 }
 
-function renderBuildPanel() {
-  const copy = getTranslation();
-  const status = state.build?.status || "idle";
-  const logs = state.build?.logs?.trim() ? state.build.logs : copy.buildLogEmpty;
-
-  elements.buildPanelTitle.textContent = copy.buildPanelTitle;
-  elements.buildStatusBadge.textContent = getBuildStatusLabel(copy, status);
-  elements.buildStatusBadge.className = `build-status-badge is-${status}`;
-  elements.buildPanelMeta.textContent = getBuildMeta(copy);
-  elements.buildLog.textContent = logs;
-  renderAccessLinks();
-}
-
-function applyBuildState(build, options = {}) {
+function applyBuildState(build, builds = [], options = {}) {
   const previousStatus = state.build?.status || "idle";
   state.build = normalizeBuild(build);
+  state.builds = normalizeBuilds(builds);
 
   if (state.build?.status === "running") {
     scheduleBuildPolling();
@@ -911,11 +1064,16 @@ function render() {
   const providerLabel = getProviderLabel(copy, state.provider);
   const sourceLabel = copy.summarySources[state.source];
   const imageTypeLabel = copy.imageTypes[state.imageType].label;
+  const zipInstallModeLabel = getZipInstallModeLabel(copy, state.zipInstallMode);
   const isZip = state.source === "zip";
   const isImageSource = state.source === "image";
   const isMytun = state.provider === "mytun";
+  const isMytunZip = isMytunZipFlow();
   const isBuildRunning = state.build?.status === "running";
-  const summaryChoice = isZip ? state.zipFileName || "prestashop.zip" : `${imageTypeLabel} • ${getCurrentImageVersionLabel()}`;
+  const canCreateAdditionalShop = isMytunZip && hasPrimaryMytunZipShop() && !isBuildRunning;
+  const summaryChoice = isZip
+    ? `${state.zipFileName || "prestashop.zip"} • ${zipInstallModeLabel}`
+    : `${imageTypeLabel} • ${getCurrentImageVersionLabel()}`;
 
   document.documentElement.lang = state.locale;
 
@@ -956,6 +1114,13 @@ function render() {
   elements.imageFlashlightDesc.textContent = copy.imageTypes.flashlight.desc;
   elements.imageMultistoreLabel.textContent = copy.imageTypes.multistore.label;
   elements.imageMultistoreDesc.textContent = copy.imageTypes.multistore.desc;
+  elements.zipInstallTitle.textContent = copy.zipInstallTitle;
+  elements.zipInstallText.textContent = copy.zipInstallText;
+  elements.zipInstallAutoLabel.textContent = copy.zipInstallModes.auto.label;
+  elements.zipInstallAutoDesc.textContent = copy.zipInstallModes.auto.desc;
+  elements.zipInstallManualLabel.textContent = copy.zipInstallModes.manual.label;
+  elements.zipInstallManualDesc.textContent = copy.zipInstallModes.manual.desc;
+  elements.zipInstallNote.textContent = copy.zipInstallNotes[state.zipInstallMode];
   elements.stepFourTitle.textContent = copy.stepFourTitle;
   elements.stepFourText.textContent = copy.stepFourTexts[state.imageType];
   elements.officialVersionHeading.textContent = copy.imageVersionLabels.official;
@@ -977,6 +1142,7 @@ function render() {
 
   elements.imageOptions.classList.toggle("is-hidden", isZip);
   elements.zipPanel.classList.toggle("is-hidden", !isZip);
+  elements.zipInstallStep.classList.toggle("is-hidden", !isZip);
   elements.imageVersionStep.classList.toggle("is-hidden", !isImageSource);
   elements.officialVersionPanel.classList.toggle("is-hidden", !isImageSource || state.imageType !== "official");
   elements.flashlightVersionPanel.classList.toggle("is-hidden", !isImageSource || state.imageType !== "flashlight");
@@ -986,9 +1152,9 @@ function render() {
     elements.dropzoneTitle.textContent = state.zipFileName || copy.zipDropIdleTitle;
     elements.dropzoneText.textContent = state.zipFileName ? copy.zipDropReadyText : copy.zipDropIdleText;
     elements.zipNote.textContent = state.zipFileName
-      ? copy.zipNoteSelected(state.zipFileName)
+      ? copy.zipNoteSelected(state.zipFileName, formatZipSelectionDate(state.zipFile))
       : copy.zipNoteEmpty;
-    elements.zipExecutionNote.textContent = copy.zipExecutionNote;
+    elements.zipExecutionNote.textContent = copy.zipExecutionNotes[state.zipInstallMode];
   }
 
   elements.summaryTitleHeading.textContent = copy.summaryTitle;
@@ -999,7 +1165,7 @@ function render() {
   elements.summaryChoiceLabel.textContent = copy.summaryChoiceLabel;
   elements.summaryChoice.textContent = summaryChoice;
   elements.summaryLine.textContent = isZip
-    ? copy.summaryLineZip(providerLabel)
+    ? copy.summaryLineZip(providerLabel, zipInstallModeLabel)
     : copy.summaryLineImage(providerLabel, imageTypeLabel);
   elements.primaryAction.textContent =
     isBuildRunning && state.build?.action !== "down" ? copy.primaryActionRunning : copy.primaryAction;
@@ -1008,6 +1174,9 @@ function render() {
   elements.tertiaryAction.textContent =
     isBuildRunning && state.build?.action === "down" ? copy.tertiaryActionRunning : copy.tertiaryAction;
   elements.tertiaryAction.disabled = isBuildRunning;
+  elements.additionalShopAction.textContent = copy.additionalShopAction;
+  elements.additionalShopAction.classList.toggle("is-hidden", !isMytunZip);
+  elements.additionalShopAction.disabled = !canCreateAdditionalShop;
   elements.footnoteText.textContent = copy.footnote;
 
   localeButtons.forEach((button) => {
@@ -1030,6 +1199,12 @@ function render() {
 
   imageTypeButtons.forEach((button) => {
     const isActive = button.dataset.imageType === state.imageType;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  zipInstallButtons.forEach((button) => {
+    const isActive = button.dataset.zipInstallMode === state.zipInstallMode;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", isActive ? "true" : "false");
   });
@@ -1058,7 +1233,7 @@ function render() {
   });
 
   renderFeedback();
-  renderBuildPanel();
+  renderBuildPanels();
 }
 
 async function loadCredentials() {
@@ -1086,7 +1261,7 @@ async function loadBuildStatus(options = {}) {
     }
 
     const payload = await response.json();
-    applyBuildState(payload.build, { silent: options.silent !== false });
+    applyBuildState(payload.build, payload.builds, { silent: options.silent !== false });
     render();
   } catch (error) {
     stopBuildPolling();
@@ -1096,18 +1271,46 @@ async function loadBuildStatus(options = {}) {
   }
 }
 
-function getBuildRequestPayload(action = "up") {
+async function uploadSelectedZipIfNeeded() {
+  if (state.source !== "zip" || !state.zipFile) {
+    return true;
+  }
+
+  try {
+    const response = await fetch("/api/zip", {
+      method: "POST",
+      headers: {
+        "X-Provider": state.provider,
+        "Content-Type": state.zipFile.type || "application/octet-stream",
+      },
+      body: state.zipFile,
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to upload selected ZIP");
+    }
+
+    return true;
+  } catch (error) {
+    setFeedback("error", getTranslation().zipUploadError);
+    return false;
+  }
+}
+
+function getBuildRequestPayload(action = "up", overrides = {}) {
   updateCredentialsFromInputs();
+  const shopId = overrides.shopId ?? DEFAULT_SHOP_ID;
 
   return {
     credentials: state.credentials,
     build: {
       action,
-      provider: state.provider,
-      source: state.source,
-      imageType: state.imageType,
+      provider: overrides.provider ?? state.provider,
+      source: overrides.source ?? state.source,
+      imageType: overrides.imageType ?? state.imageType,
+      installMode: overrides.installMode ?? state.zipInstallMode,
       images: getResolvedImageSelections(),
-      shopId: DEFAULT_SHOP_ID,
+      shopId,
     },
   };
 }
@@ -1146,11 +1349,21 @@ function getBuildErrorMessage(payload, statusCode, action = "up") {
   return payload?.error || (action === "down" ? copy.stopStartError : copy.buildStartError);
 }
 
-async function launchBuild(action = "up") {
-  const validationError = action === "up" ? validateActiveProvider() || validateImageSelection() : "";
+async function launchBuild(action = "up", overrides = {}) {
+  const validationError =
+    action === "up"
+      ? validateActiveProvider() || validateImageSelection()
+      : "";
   if (validationError) {
     setFeedback("error", validationError);
     return false;
+  }
+
+  if (action === "up") {
+    const uploadSucceeded = await uploadSelectedZipIfNeeded();
+    if (!uploadSucceeded) {
+      return false;
+    }
   }
 
   try {
@@ -1159,13 +1372,13 @@ async function launchBuild(action = "up") {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(getBuildRequestPayload(action)),
+      body: JSON.stringify(getBuildRequestPayload(action, overrides)),
     });
 
     const payload = await response.json();
 
     if (!response.ok) {
-      applyBuildState(payload.build, { silent: true });
+      applyBuildState(payload.build, payload.builds, { silent: true });
       render();
       setFeedback("error", getBuildErrorMessage(payload, response.status, action));
       return false;
@@ -1177,7 +1390,7 @@ async function launchBuild(action = "up") {
       lastSavedSignature = getCredentialsSignature();
     }
 
-    applyBuildState(payload.build, { silent: true });
+    applyBuildState(payload.build, payload.builds, { silent: true });
     render();
     setFeedback(
       "success",
@@ -1246,6 +1459,7 @@ function applyZipFile(file) {
     return;
   }
 
+  state.zipFile = file;
   state.zipFileName = file.name;
   render();
 }
@@ -1269,6 +1483,14 @@ sourceButtons.forEach((button) => {
 imageTypeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.imageType = button.dataset.imageType;
+    clearFeedback();
+    render();
+  });
+});
+
+zipInstallButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.zipInstallMode = button.dataset.zipInstallMode === "manual" ? "manual" : "auto";
     clearFeedback();
     render();
   });
@@ -1334,19 +1556,26 @@ elements.tertiaryAction.addEventListener("click", async () => {
   await launchBuild("down");
 });
 
+elements.additionalShopAction.addEventListener("click", async () => {
+  await launchBuild("up", { shopId: getNextAdditionalShopId() });
+});
+
 elements.dropzone.addEventListener("click", () => {
+  elements.zipInput.value = "";
   elements.zipInput.click();
 });
 
 elements.dropzone.addEventListener("keydown", (event) => {
   if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
+    elements.zipInput.value = "";
     elements.zipInput.click();
   }
 });
 
 elements.zipInput.addEventListener("change", (event) => {
   applyZipFile(event.target.files[0]);
+  event.target.value = "";
 });
 
 elements.dropzone.addEventListener("dragover", (event) => {

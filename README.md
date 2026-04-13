@@ -6,7 +6,9 @@ Ce projet permet de créer des boutiques PrestaShop de différentes façons.
 
 ## ⚙️ Prérequis
 
-Vous devez faire un ```git clone``` du projet en local 
+1. Faire un `git clone` du projet en local
+2. Avoir Docker Desktop installé et démarré
+3. Avoir `Node.js` installé sur la machine si vous souhaitez utiliser l'interface graphique
 
 ---
 
@@ -30,6 +32,12 @@ Vous devez faire un ```git clone``` du projet en local
 
 ## Documentation pour créer des shops à partir d'un zip avec MyTun, permet d'avoir plusieurs version de PS simultaném
 
-- [🔗 Build avec ZIP](./build-Shop_with_ZIP_Ngrok/README.md)
+- [🔗 Build avec ZIP + MyTun](./build-Shop_with_ZIP_MyTun_for_Multiple_Shop_Exposed/README.md)
+
+---
+
+## Documentation pour utiliser l'interface graphique
+
+- [🔗 UI Builder](./ui/README.md)
 
 ---

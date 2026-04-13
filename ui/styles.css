@@ -474,6 +474,11 @@ h1 {
   background: #fff2f0;
 }
 
+.build-panel-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .build-panel {
   padding: 22px;
   background: var(--panel);
@@ -489,9 +494,32 @@ h1 {
   gap: 14px;
 }
 
+.build-panel-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .build-panel-head h2 {
   font-size: 1.55rem;
   line-height: 1.1;
+}
+
+.build-panel-action-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #8a3930;
+  border-radius: 999px;
+  background: #fff2f0;
+  color: #7b2f27;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.build-panel-action-button:disabled {
+  opacity: 0.68;
+  cursor: default;
 }
 
 .build-status-badge {

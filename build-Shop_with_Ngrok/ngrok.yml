@@ -1,9 +1,0 @@
-version: 2
-region: eu
-log_level: debug
-web_addr: 0.0.0.0:4040
-tunnels:
-  prestashop-flashlight:
-    proto: http
-    addr: prestashop-flashlight:80
-    hostname: tahr-crisp-ferret.ngrok-free.app
