@@ -826,9 +826,54 @@ function getBuildPanelTitle(copy, build) {
   return copy.buildPanelTitle;
 }
 
+function isBuildVisibleForCurrentSelection(build) {
+  if (!build) {
+    return false;
+  }
+
+  if (isMytunZipFlow()) {
+    return isMytunZipBuild(build);
+  }
+
+  if (build.provider !== state.provider || build.source !== state.source) {
+    return false;
+  }
+
+  if (state.source === "image") {
+    return build.imageType === state.imageType;
+  }
+
+  return true;
+}
+
+function getVisibleBuilds() {
+  const visibleBuilds = state.builds.filter(isBuildVisibleForCurrentSelection);
+
+  if (state.build?.status === "running" && state.build && !visibleBuilds.some((build) => build.id === state.build.id)) {
+    visibleBuilds.push(state.build);
+  }
+
+  if (isMytunZipFlow()) {
+    return visibleBuilds.sort((left, right) => left.shopId - right.shopId);
+  }
+
+  return visibleBuilds.length ? [visibleBuilds[visibleBuilds.length - 1]] : [];
+}
+
+function scrollBuildLogToBottom(logElement) {
+  if (!logElement) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    logElement.scrollTop = logElement.scrollHeight;
+  });
+}
+
 function renderBuildPanels() {
   const copy = getTranslation();
-  const builds = state.builds.length ? state.builds : [null];
+  const visibleBuilds = getVisibleBuilds();
+  const builds = visibleBuilds.length ? visibleBuilds : [null];
 
   elements.buildPanels.replaceChildren();
 
@@ -920,6 +965,7 @@ function renderBuildPanels() {
     accessPanel.append(accessPanelHead, accessNote, accessLinks);
     panel.append(head, meta, log, accessPanel);
     elements.buildPanels.append(panel);
+    scrollBuildLogToBottom(log);
   });
 }
 
